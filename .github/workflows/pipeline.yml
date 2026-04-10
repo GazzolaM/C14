@@ -26,7 +26,6 @@ jobs:
           pip install -r requirements.txt
           
       - name: Executar testes com Pytest
-        # AJUSTE 1: Adicionado "python -m" para evitar erro de importação do módulo converter
         run: python -m pytest tests/ --junitxml=relatorio-testes.xml
         
       - name: Salvar Relatório de Testes como Artifact
@@ -69,7 +68,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/conversor-medidas:latest
 
-  # JOB 3: DEPLOY
+  # JOB 3: DEPLOY (Versão CLI)
   deploy:
     name: Deploy no Railway
     runs-on: ubuntu-latest
@@ -78,12 +77,14 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-        
-      - name: Deploy no Railway
-        # AJUSTE 2: Atualizado o endereço da Action (railwayapp sem hífen e usando master)
-        uses: railwayapp/action-deploy@master
-        with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Instalar Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Executar Deploy
+        run: railway up --service conversor-medidas --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
   # JOB 4: NOTIFICAÇÃO
   notificacao:
